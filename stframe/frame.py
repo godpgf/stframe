@@ -84,7 +84,7 @@ def process_order(frame_table, thigh, tlow, close, is_inclusion, index):
                 frame_stop_index_1 = i
 
         if frame_index_1 is None:
-            frame_table.append(Frame(FrameType.top, index) if is_top else Frame(FrameType.bottom))
+            frame_table.append(Frame(FrameType.top, index) if is_top else Frame(FrameType.bottom, index))
         else:
             frame_1 = frame_table[frame_index_1]
             if frame_1.frame_type == (FrameType.top if is_top else FrameType.bottom):
