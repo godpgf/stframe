@@ -15,6 +15,8 @@ class FrameType(Enum):
     go_up = 5
     # 顶分型停顿后继续下跌
     go_down = 6
+    # 顶分型或者底分型判断错误。如果底分型判断错误，坚决卖出；如果顶分型判断错误并且已经卖掉，发出再买入行为假装买入，惩罚模型。
+    force_stop = 7
 
 
 # 关键帧
@@ -277,7 +279,7 @@ def process_trend(frame_table, atr, close, index):
                 return
             else:
                 assert frame_table[pre_frame].frame_type == FrameType.bottom
-        if frame_type == FrameType.bottom:
+        if frame_type == FrameType.go_down:
             if frame_table[pre_frame].frame_type == FrameType.bottom:
                 return
             else:
@@ -285,6 +287,27 @@ def process_trend(frame_table, atr, close, index):
         frame_table.append(Frame(frame_type, index))
         frame_table[-1].pre_frame = frame_table[pre_frame_index].pre_frame
 
+
+def process_force_stop(frame_table, high, low, close, index):
+    pre_frame_index = len(frame_table) - 1
+    # 找到上个顶底分型
+    while pre_frame_index is not None and pre_frame_index >= 0 and (frame_table[pre_frame_index].frame_type != FrameType.top and frame_table[pre_frame_index].frame_type != FrameType.bottom):
+        if frame_table[pre_frame_index].frame_type == FrameType.force_stop:
+            return
+        pre_frame_index = frame_table[pre_frame_index].pre_frame
+
+    if pre_frame_index is not None and pre_frame_index >= 0:
+        pre_data_index = frame_table[pre_frame_index].data_index - 2
+        if frame_table[pre_frame_index].frame_type == FrameType.top:
+            if close[index] > high[pre_data_index]:
+                frame_table.append(Frame(FrameType.force_stop, index))
+                frame_table[-1].pre_frame = pre_frame_index
+        else:
+            assert frame_table[pre_frame_index].frame_type == FrameType.bottom
+            if frame_table[pre_frame_index].frame_type == FrameType.bottom:
+                if close[index] < low[pre_frame_index]:
+                    frame_table.append(Frame(FrameType.force_stop, index))
+                    frame_table[-1].pre_frame = pre_frame_index
 
 def process_frame(data):
     frame_table = []
@@ -298,5 +321,7 @@ def process_frame(data):
             process_order_stop(frame_table, open, high, low, close, i)
         if cur_frame_cnt == len(frame_table):
             process_trend(frame_table, atr, close, i)
+        if cur_frame_cnt == len(frame_table):
+            process_force_stop(frame_table, high, low, close, i)
 
     return frame_table
