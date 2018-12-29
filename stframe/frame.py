@@ -270,7 +270,19 @@ def process_trend(frame_table, atr, close, index):
 
     pre_index = frame_table[pre_frame_index].data_index
     if abs(close[index] - close[pre_index]) < (atr[index] + atr[pre_index]):
-        frame_table.append(Frame(FrameType.go_down if close[index] < close[pre_index] else FrameType.go_up, index))
+        frame_type = FrameType.go_down if close[index] < close[pre_index] else FrameType.go_up
+        pre_frame = frame_table[pre_frame_index].pre_frame
+        if frame_type == FrameType.go_up:
+            if frame_table[pre_frame].frame_type == FrameType.top:
+                return
+            else:
+                assert frame_table[pre_frame].frame_type == FrameType.bottom
+        if frame_type == FrameType.bottom:
+            if frame_table[pre_frame].frame_type == FrameType.bottom:
+                return
+            else:
+                assert frame_table[pre_frame].frame_type == FrameType.top
+        frame_table.append(Frame(frame_type, index))
         frame_table[-1].pre_frame = frame_table[pre_frame_index].pre_frame
 
 
