@@ -291,7 +291,7 @@ def process_trend(frame_table, atr, close, index):
 def process_force_stop(frame_table, high, low, close, index):
     pre_frame_index = len(frame_table) - 1
     # 找到上个顶底分型
-    while pre_frame_index is not None and pre_frame_index >= 0 and (frame_table[pre_frame_index].frame_type != FrameType.top and frame_table[pre_frame_index].frame_type != FrameType.bottom):
+    while pre_frame_index is not None and pre_frame_index >= 0 and ((frame_table[pre_frame_index].frame_type != FrameType.top and frame_table[pre_frame_index].frame_type != FrameType.bottom) or (frame_table[pre_frame_index].next_replace_frame is not None and frame_table[pre_frame_index].next_replace_frame < len(frame_table))):
         if frame_table[pre_frame_index].frame_type == FrameType.force_stop:
             return
         pre_frame_index = frame_table[pre_frame_index].pre_frame
