@@ -5,13 +5,13 @@ from stframe import FrameType
 
 
 if __name__ == '__main__':
-    code = '601169'
-    data = np.load('output/%s.npy' % code)
-    frame_table = pd.read_csv("output/%s_frame.csv" % code, dtype={'frame_type': np.int32,
+    code = '000725'
+    data = np.load('data/%s.npy' % code)
+    frame_table = pd.read_csv("data/%s_frame.csv" % code, dtype={'frame_type': np.int32,
                                                                  'data_index': np.int32})
     min_data_index = np.min(frame_table['data_index'].values)
-    segment_table = pd.read_csv("output/%s_segment.csv" % code)
-    center_table = pd.read_csv("output/%s_center.csv" % code)
+    segment_table = pd.read_csv("data/%s_segment.csv" % code)
+    center_table = pd.read_csv("data/%s_center.csv" % code)
 
     date = data['date'] // 1000000
     date = ["%s-%s-%s" % (str(int(d))[:4], str(int(d))[4:6], str(int(d))[6:]) for d in date]
