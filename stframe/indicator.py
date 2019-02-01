@@ -131,7 +131,7 @@ def cal_expect_returns(atr, close, volume, n):
         if volume[i] <= 0:
             returns[i] = returns[i+1]
         else:
-            returns[i] = (2 * (close[i+1] - close[i])/atr[i] + (n - 1) * returns[i+1]) / (n + 1)
+            returns[i] = (2 * (close[i+1] - close[i])/atr[i] + (n - 1) * returns[i+1]) / (n + 1) if atr[i] > 0 else 0
     return returns
 
 

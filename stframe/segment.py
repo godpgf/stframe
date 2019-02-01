@@ -83,8 +83,8 @@ def process_segment(frame_table, open, thigh, tlow, close):
 
             mid_index = get_best_index(thigh, tlow, frame_table, order_list, segmemt_finish_index + 1,
                                        len(order_list) - 3, is_top)
-            mid_pos = thigh[frame_table[order_list[mid_index]].data_index] if is_top else tlow[
-                frame_table[order_list[mid_index]].data_index]
+            mid_pos = thigh[frame_table[order_list[mid_index]].data_index-1] if is_top else tlow[
+                frame_table[order_list[mid_index]].data_index-1]
             if (is_top and mid_pos >= next_pos_2) or (is_top is False and mid_pos <= next_pos_2):
                 # 没有站稳之前的最值点
                 continue

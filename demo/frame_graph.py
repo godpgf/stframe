@@ -5,12 +5,13 @@ from stframe import FrameType
 
 
 if __name__ == '__main__':
-    code = '600887'
-    data = np.load('data/%s.npy' % code)
-    frame_table = pd.read_csv("data/%s_frame.csv" % code, dtype={'frame_type': np.int32,
+    code = '601169'
+    data = np.load('output/%s.npy' % code)
+    frame_table = pd.read_csv("output/%s_frame.csv" % code, dtype={'frame_type': np.int32,
                                                                  'data_index': np.int32})
-    segment_table = pd.read_csv("data/%s_segment.csv" % code)
-    center_table = pd.read_csv("data/%s_center.csv" % code)
+    min_data_index = np.min(frame_table['data_index'].values)
+    segment_table = pd.read_csv("output/%s_segment.csv" % code)
+    center_table = pd.read_csv("output/%s_center.csv" % code)
 
     date = data['date'] // 1000000
     date = ["%s-%s-%s" % (str(int(d))[:4], str(int(d))[4:6], str(int(d))[6:]) for d in date]
@@ -26,11 +27,11 @@ if __name__ == '__main__':
 
     plt.figure(figsize=(24, 6))
 
-    plt.plot_date(date, thigh, '.', color=(1,0,0), markersize=2)
-    plt.plot_date(date, tlow, '.', color=(0,1,0), markersize=2)
+    plt.plot_date(date[min_data_index-1:], thigh[min_data_index-1:], '.', color=(1,0,0), markersize=2)
+    plt.plot_date(date[min_data_index-1:], tlow[min_data_index-1:], '.', color=(0,1,0), markersize=2)
 
-    plt.plot(date, ma5, color=(0.5,0.5,0.5))
-    plt.plot(date, ma10, color=(0,0,0))
+    plt.plot(date[min_data_index-1:], ma5[min_data_index-1:], color=(0.5,0.5,0.5))
+    plt.plot(date[min_data_index-1:], ma10[min_data_index-1:], color=(0,0,0))
 
     # 画笔
     order_list = []
