@@ -5,10 +5,10 @@ import pandas as pd
 
 if __name__ == '__main__':
     code_df = pd.read_csv("data/codes.csv", dtype=str)
-    dataProxy = LocalDataProxy(min_date='2009-01-01')
+    dataProxy = LocalDataProxy(min_date='2018-01-01')
     for index, row in code_df.iterrows():
         code = row['code']
-        data = stf.process_indicator(dataProxy.get_all_data(code), dataProxy.get_all_data('sz399005'))
+        data = stf.process_indicator(dataProxy.get_all_data(code))
         np.save('data/%s' % code, data)
 
         frame_table = stf.process_frame(data)

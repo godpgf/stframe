@@ -4,19 +4,19 @@ from enum import Enum
 # 关键帧的类型
 class FrameType(Enum):
     # 顶分型
-    top = 1
+    top = 0
     # 底分型
-    bottom = 2
+    bottom = 1
     # 顶分型停顿
-    top_delay = 3
+    top_delay = 2
     # 底分型停顿
-    bottom_delay = 4
+    bottom_delay = 3
+    # 顶分型停顿后继续下跌
+    go_down = 4
     # 底分型停顿后继续上涨
     go_up = 5
-    # 顶分型停顿后继续下跌
-    go_down = 6
     # 顶分型或者底分型判断错误。如果底分型判断错误，坚决卖出；如果顶分型判断错误并且已经卖掉，发出再买入行为假装买入，惩罚模型。
-    force_stop = 7
+    force_stop = 6
 
 
 # 关键帧
@@ -264,28 +264,24 @@ def process_order_stop(frame_table, open, high, low, close, index):
 def process_trend(frame_table, atr, close, index):
     # 找到上个有可能就行买卖操作的帧
     pre_frame_index = len(frame_table) - 1
-    while pre_frame_index >= 0 and (frame_table[pre_frame_index].frame_type == FrameType.top or frame_table[
-        pre_frame_index].frame_type == FrameType.bottom):
-        pre_frame_index -= 1
-    if pre_frame_index < 0 or frame_table[pre_frame_index].pre_frame is None:
-        return
-
-    pre_index = frame_table[pre_frame_index].data_index
-    if abs(close[index] - close[pre_index]) < (atr[index] + atr[pre_index]):
-        frame_type = FrameType.go_down if close[index] < close[pre_index] else FrameType.go_up
-        pre_frame = frame_table[pre_frame_index].pre_frame
-        if frame_type == FrameType.go_up:
-            if frame_table[pre_frame].frame_type == FrameType.top:
-                return
-            else:
-                assert frame_table[pre_frame].frame_type == FrameType.bottom
-        if frame_type == FrameType.go_down:
-            if frame_table[pre_frame].frame_type == FrameType.bottom:
-                return
-            else:
-                assert frame_table[pre_frame].frame_type == FrameType.top
-        frame_table.append(Frame(frame_type, index))
-        frame_table[-1].pre_frame = frame_table[pre_frame_index].pre_frame
+    while pre_frame_index >= 0:
+        pre_frame_type = frame_table[pre_frame_index].frame_type
+        pre_index = frame_table[pre_frame_index].data_index
+        # 有可能买入
+        if (pre_frame_type == FrameType.bottom_delay or pre_frame_type == FrameType.go_up) and frame_table[pre_frame_index].next_replace_frame is None:
+            if (close[index] - close[pre_index]) > (atr[index] + atr[pre_index]):
+                # 更加确定买入趋势
+                frame_table.append(Frame(FrameType.go_up, index))
+                frame_table[-1].pre_frame = frame_table[pre_frame_index].pre_frame
+            return
+        elif (pre_frame_type == FrameType.top_delay or pre_frame_type == FrameType.go_down) and frame_table[pre_frame_index].next_replace_frame is None:
+            if (close[index] - close[pre_index]) < -(atr[index] + atr[pre_index]):
+                # 更加确定卖出趋势
+                frame_table.append(Frame(FrameType.go_down, index))
+                frame_table[-1].pre_frame = frame_table[pre_frame_index].pre_frame
+            return
+        else:
+            pre_frame_index -= 1
 
 
 def process_force_stop(frame_table, high, low, close, index):
@@ -297,7 +293,7 @@ def process_force_stop(frame_table, high, low, close, index):
         pre_frame_index = frame_table[pre_frame_index].pre_frame
 
     if pre_frame_index is not None and pre_frame_index >= 0:
-        pre_data_index = frame_table[pre_frame_index].data_index - 2
+        pre_data_index = frame_table[pre_frame_index].data_index - 1
         if frame_table[pre_frame_index].frame_type == FrameType.top:
             if close[index] > high[pre_data_index]:
                 frame_table.append(Frame(FrameType.force_stop, index))
@@ -305,9 +301,10 @@ def process_force_stop(frame_table, high, low, close, index):
         else:
             assert frame_table[pre_frame_index].frame_type == FrameType.bottom
             if frame_table[pre_frame_index].frame_type == FrameType.bottom:
-                if close[index] < low[pre_frame_index]:
+                if close[index] < low[pre_data_index]:
                     frame_table.append(Frame(FrameType.force_stop, index))
                     frame_table[-1].pre_frame = pre_frame_index
+
 
 def process_frame(data):
     frame_table = []
