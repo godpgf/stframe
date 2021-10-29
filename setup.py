@@ -18,7 +18,7 @@ setup(
     author_email='godpgf@qq.com',
     package_data={'': ['*.*']},
     url='https://github.com/godpgf/stframe',
-    install_requires=[str(ir.req) for ir in parse_requirements("requirements.txt", session=False)],
+    install_requires=[str(ir.requirement) for ir in parse_requirements("requirements.txt", session=False)],
     zip_safe=False,
     #entry_points={
     #    "console_scripts": [
