@@ -6,23 +6,28 @@ import numpy as np
 
 # 处理各种指标
 def process_indicator(data):
+    # "date","open","high","low","close","price","volume","turnover"
     date = data['date']
     open = data['open']
     high = data['high']
     low = data['low']
     close = data['close']
+    price = data['price']
     volume = data['volume']
+    turnover = data['turnover']
     atr = cal_atr(cal_tr(high, low, close, volume), volume)
     thigh, tlow, is_inclusion = cal_inclusion(high, low)
 
-    data = np.array([date, open, high, low, close, volume, atr, thigh, tlow, is_inclusion]).T
+    data = np.array([date, open, high, low, close, price, volume, turnover, atr, thigh, tlow, is_inclusion]).T
     data = [tuple(d.tolist()) for d in data]
 
     stocktype = np.dtype([
-        ('date', 'uint64'), ('open', 'float64'),
-        ('high', 'float64'), ('low', 'float64'),
-        ('close', 'float64'), ('volume', 'float64'), ('atr', 'float64'),
-        ('thigh', 'float64'), ('tlow', 'float64'), ('is_inclusion', 'bool'),
+        ('date', 'uint64'), ('open', 'float32'),
+        ('high', 'float32'), ('low', 'float32'),
+        ('close', 'float32'), ('price', 'float32'),
+        ('volume', 'uint64'), ('turnover', 'float32'),
+        ('atr', 'float32'), ('thigh', 'float32'),
+        ('tlow', 'float32'), ('is_inclusion', 'bool'),
     ])
     bars = np.array(data, dtype=stocktype)
     return bars
